@@ -12,7 +12,7 @@ const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
         200: gqlResponseSchema,
       },
     },
-    async handler(req) {
+    async handler({ body }) {
       return {};
     },
   });
