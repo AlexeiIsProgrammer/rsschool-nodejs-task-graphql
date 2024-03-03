@@ -1,6 +1,40 @@
 import { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
+import { GraphQLObjectType, GraphQLSchema, graphql } from 'graphql';
+
+import { ProfileMutations } from './mutations/ProfileMutations.js';
+import { PostMutations } from './mutations/PostMutations.js';
+import { UserMutations } from './mutations/UserMutation.js';
+import { MemberQueries } from './queries/MemberQueries.js';
+import { ProfileQueries } from './queries/ProfileQueries.js';
+import { PostQueries } from './queries/PostQueries.js';
+import { UserQueries } from './queries/UserQueries.js';
 import { createGqlResponseSchema, gqlResponseSchema } from './schemas.js';
-import { graphql } from 'graphql';
+
+const Query = new GraphQLObjectType({
+  name: 'Query',
+  description: 'Query',
+  fields: () => ({
+    ...UserQueries,
+    ...PostQueries,
+    ...ProfileQueries,
+    ...MemberQueries,
+  }),
+});
+
+const Mutation = new GraphQLObjectType({
+  name: 'Mutation',
+  description: 'Mutation',
+  fields: () => ({
+    ...UserMutations,
+    ...PostMutations,
+    ...ProfileMutations,
+  }),
+});
+
+const appScheme = new GraphQLSchema({
+  query: Query,
+  mutation: Mutation,
+});
 
 const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.route({
@@ -12,9 +46,12 @@ const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
         200: gqlResponseSchema,
       },
     },
-    async handler({ body }) {
-      return {};
-    },
+    handler: async ({ body: { query, variables } }) =>
+      await graphql({
+        schema: appScheme,
+        source: query,
+        variableValues: variables,
+      }),
   });
 };
 

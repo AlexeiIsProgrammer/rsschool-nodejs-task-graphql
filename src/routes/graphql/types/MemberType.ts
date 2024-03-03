@@ -1,9 +1,8 @@
 import { GraphQLFloat, GraphQLInt, GraphQLObjectType } from 'graphql';
-import { MemberTypeId as MemberTypeIdGraph } from './MemberTypeId.js';
-import { MemberTypeId } from '../../member-types/schemas.js';
+import { MemberTypeId } from './MemberTypeId.js';
 
 export type Member = {
-  id: MemberTypeId | string;
+  id: 'basic' | 'business';
   discount: number;
   postsLimitPerMonth: number;
 };
@@ -12,7 +11,7 @@ export const MemberType = new GraphQLObjectType({
   name: 'MemberType',
   description: 'Just a member',
   fields: () => ({
-    id: { type: MemberTypeIdGraph },
+    id: { type: MemberTypeId },
     discount: { type: GraphQLFloat },
     postsLimitPerMonth: { type: GraphQLInt },
   }),

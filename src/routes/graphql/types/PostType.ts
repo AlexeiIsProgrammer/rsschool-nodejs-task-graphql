@@ -13,6 +13,12 @@ export type Post = {
   authorId: string;
 };
 
+export type CreatePost = {
+  dto: Omit<Post, 'id'>;
+};
+
+export type ChangePost = CreatePost & { id: string };
+
 export const PostType = new GraphQLObjectType({
   name: 'Post',
   description: 'Just a post',

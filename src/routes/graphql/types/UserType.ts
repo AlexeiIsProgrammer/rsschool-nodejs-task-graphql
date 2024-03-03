@@ -1,8 +1,15 @@
-import { GraphQLFloat, GraphQLList, GraphQLObjectType, GraphQLString } from 'graphql';
+import {
+  GraphQLFloat,
+  GraphQLInputObjectType,
+  GraphQLList,
+  GraphQLNonNull,
+  GraphQLObjectType,
+  GraphQLString,
+} from 'graphql';
 
 import { UUIDType } from './uuid.js';
 import { ProfileType } from './ProfileType.js';
-import { Context } from './index.js';
+import { Context } from './types.js';
 import { PostType } from './PostType.js';
 
 export type User = {
@@ -12,22 +19,33 @@ export type User = {
 };
 
 export type Subscription = {
-  subscribedToUser: {
-    subscriberId: string;
-    authorId: string;
-  }[];
+  subscribedToUser: SubsId[];
 } & User;
 
 export type Author = {
-  userSubscribedTo: {
-    subscriberId: string;
-    authorId: string;
-  }[];
+  userSubscribedTo: SubsId[];
 } & User;
+
+export type CreateUser = {
+  dto: Omit<User, 'id'>;
+};
+
+export type ChangeUser = CreateUser & { id: string };
+
+type SubsId = {
+  subscriberId: string;
+  authorId: string;
+};
+
+type SubsType = 'userSubscribedTo' | 'subscribedToUser';
+
+type Example = Record<SubsType, SubsId>;
+export type AuthorSub = Omit<Example, 'userSubscribedTo'>;
+export type subscribedToUser = Omit<Example, 'subscribedToUser'>;
 
 export const UserType: GraphQLObjectType = new GraphQLObjectType({
   name: 'User',
-  description: 'This represents a user',
+  description: 'Just a user',
   fields: () => ({
     id: { type: UUIDType },
     name: { type: GraphQLString },
@@ -59,5 +77,22 @@ export const UserType: GraphQLObjectType = new GraphQLObjectType({
       resolve: async ({ id }: User, _, { loaders: { subscribedToUser } }: Context) =>
         subscribedToUser.load(id),
     },
+  }),
+});
+
+export const CreateUserInputType = new GraphQLInputObjectType({
+  name: 'CreateUserInput',
+  fields: () => ({
+    name: { type: new GraphQLNonNull(GraphQLString) },
+    balance: { type: new GraphQLNonNull(GraphQLFloat) },
+  }),
+});
+
+export const ChangeUserInputType = new GraphQLInputObjectType({
+  name: 'ChangeUserInput',
+  fields: () => ({
+    id: { type: UUIDType },
+    name: { type: GraphQLString },
+    balance: { type: GraphQLFloat },
   }),
 });

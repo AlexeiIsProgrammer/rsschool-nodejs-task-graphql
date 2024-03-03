@@ -7,16 +7,23 @@ import {
 } from 'graphql';
 import { UUIDType } from './uuid.js';
 import { MemberType } from '../types/MemberType.js';
-import { Context } from './index.js';
-import { MemberTypeId } from '../../member-types/schemas.js';
-import { MemberTypeId as MemberTypeIdGraph } from './MemberTypeId.js';
+import { Context } from './types.js';
+import { MemberTypeId } from './MemberTypeId.js';
 
 export type Profile = {
   id: string;
   isMale: boolean;
   yearOfBirth: number;
   userId: string;
-  memberTypeId: MemberTypeId | string;
+  memberTypeId: 'business' | 'basic';
+};
+
+export type CreateProfile = {
+  dto: Omit<Profile, 'id'>;
+};
+
+export type ChangeProfile = { id: string } & {
+  dto: Omit<Profile, 'id, userId'>;
 };
 
 export const ProfileType = new GraphQLObjectType({
@@ -27,7 +34,7 @@ export const ProfileType = new GraphQLObjectType({
     isMale: { type: GraphQLBoolean },
     yearOfBirth: { type: GraphQLInt },
     userId: { type: UUIDType },
-    memberTypeId: { type: MemberTypeIdGraph },
+    memberTypeId: { type: MemberTypeId },
 
     memberType: {
       type: MemberType,
@@ -43,7 +50,7 @@ export const CreateProfileInputType = new GraphQLInputObjectType({
     isMale: { type: new GraphQLNonNull(GraphQLBoolean) },
     yearOfBirth: { type: new GraphQLNonNull(GraphQLInt) },
     userId: { type: new GraphQLNonNull(UUIDType) },
-    memberTypeId: { type: new GraphQLNonNull(MemberTypeIdGraph) },
+    memberTypeId: { type: new GraphQLNonNull(MemberTypeId) },
   }),
 });
 
@@ -52,6 +59,6 @@ export const ChangeProfileInputType = new GraphQLInputObjectType({
   fields: () => ({
     isMale: { type: GraphQLBoolean },
     yearOfBirth: { type: GraphQLInt },
-    memberTypeId: { type: MemberTypeIdGraph },
+    memberTypeId: { type: MemberTypeId },
   }),
 });
