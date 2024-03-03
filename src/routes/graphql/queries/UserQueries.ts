@@ -1,4 +1,5 @@
 import { GraphQLList, GraphQLNonNull, GraphQLResolveInfo } from 'graphql';
+
 import {
   ResolveTree,
   parseResolveInfo,

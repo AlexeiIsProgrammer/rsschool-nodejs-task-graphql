@@ -16,7 +16,7 @@ export type Profile = {
   isMale: boolean;
   yearOfBirth: number;
   userId: string;
-  memberTypeId: MemberTypeId;
+  memberTypeId: MemberTypeId | string;
 };
 
 export type CreateProfile = {

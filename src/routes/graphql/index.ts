@@ -10,6 +10,14 @@ import { PostQueries } from './queries/PostQueries.js';
 import { UserQueries } from './queries/UserQueries.js';
 import { createGqlResponseSchema, gqlResponseSchema } from './schemas.js';
 import depthLimit from 'graphql-depth-limit';
+import { createPostsLoader } from './loaders/PostLoader.js';
+import { createProfileLoader } from './loaders/ProfileLoader.js';
+import {
+  createSubscribedToUserLoader,
+  createUserLoader,
+  createUserToSubscribeLoader,
+} from './loaders/UserLoader.js';
+import { createMemberTypeLoader } from './loaders/MemberLoader.js';
 
 const Query = new GraphQLObjectType({
   name: 'Query',
@@ -58,6 +66,17 @@ const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
         schema: appScheme,
         source: query,
         variableValues: variables,
+        contextValue: {
+          prisma: fastify.prisma,
+          loaders: {
+            postsLoader: createPostsLoader(fastify.prisma),
+            profileLoader: createProfileLoader(fastify.prisma),
+            userLoader: createUserLoader(fastify.prisma),
+            userSubscribedToLoader: createUserToSubscribeLoader(fastify.prisma),
+            subscribedToUser: createSubscribedToUserLoader(fastify.prisma),
+            memberTypeLoader: createMemberTypeLoader(fastify.prisma),
+          },
+        },
       });
     },
   });

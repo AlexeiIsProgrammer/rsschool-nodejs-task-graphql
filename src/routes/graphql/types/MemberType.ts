@@ -3,7 +3,7 @@ import { MemberTypeId as MemberTypeIdGraph } from './MemberTypeId.js';
 import { MemberTypeId } from '../../member-types/schemas.js';
 
 export type Member = {
-  id: MemberTypeId;
+  id: MemberTypeId | string;
   discount: number;
   postsLimitPerMonth: number;
 };

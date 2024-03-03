@@ -18,12 +18,17 @@ export type User = {
   balance: number;
 };
 
+type SubscriberId = {
+  subscriberId: string;
+  authorId: string;
+};
+
 export type Subscription = {
-  subscribedToUser: SubsId[];
+  subscribedToUser: SubscriberId[];
 } & User;
 
 export type Author = {
-  userSubscribedTo: SubsId[];
+  userSubscribedTo: SubscriberId[];
 } & User;
 
 export type CreateUser = {
@@ -31,17 +36,6 @@ export type CreateUser = {
 };
 
 export type ChangeUser = CreateUser & { id: string };
-
-type SubsId = {
-  subscriberId: string;
-  authorId: string;
-};
-
-type SubsType = 'userSubscribedTo' | 'subscribedToUser';
-
-type Example = Record<SubsType, SubsId>;
-export type AuthorSub = Omit<Example, 'userSubscribedTo'>;
-export type subscribedToUser = Omit<Example, 'subscribedToUser'>;
 
 export const UserType: GraphQLObjectType = new GraphQLObjectType({
   name: 'User',
