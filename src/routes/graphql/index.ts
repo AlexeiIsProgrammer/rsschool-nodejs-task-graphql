@@ -1,6 +1,49 @@
 import { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
+import { GraphQLObjectType, GraphQLSchema, graphql, parse, validate } from 'graphql';
+
+import { ProfileMutations } from './mutations/ProfileMutations.js';
+import { PostMutations } from './mutations/PostMutations.js';
+import { UserMutations } from './mutations/UserMutation.js';
+import { MemberQueries } from './queries/MemberQueries.js';
+import { ProfileQueries } from './queries/ProfileQueries.js';
+import { PostQueries } from './queries/PostQueries.js';
+import { UserQueries } from './queries/UserQueries.js';
 import { createGqlResponseSchema, gqlResponseSchema } from './schemas.js';
-import { graphql } from 'graphql';
+import depthLimit from 'graphql-depth-limit';
+import { createPostsLoader } from './loaders/PostLoader.js';
+import { createProfileLoader } from './loaders/ProfileLoader.js';
+import {
+  createSubscribedToUserLoader,
+  createUserLoader,
+  createUserToSubscribeLoader,
+} from './loaders/UserLoader.js';
+import { createMemberTypeLoader } from './loaders/MemberLoader.js';
+
+const Query = new GraphQLObjectType({
+  name: 'Query',
+  description: 'Query',
+  fields: () => ({
+    ...UserQueries,
+    ...PostQueries,
+    ...ProfileQueries,
+    ...MemberQueries,
+  }),
+});
+
+const Mutation = new GraphQLObjectType({
+  name: 'Mutation',
+  description: 'Mutation',
+  fields: () => ({
+    ...UserMutations,
+    ...PostMutations,
+    ...ProfileMutations,
+  }),
+});
+
+const appScheme = new GraphQLSchema({
+  query: Query,
+  mutation: Mutation,
+});
 
 const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.route({
@@ -12,8 +55,29 @@ const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
         200: gqlResponseSchema,
       },
     },
-    async handler(req) {
-      return {};
+    handler: async ({ body: { query, variables } }) => {
+      const errors = validate(appScheme, parse(query), [depthLimit(5)]);
+
+      if (errors.length) {
+        return { errors };
+      }
+
+      return await graphql({
+        schema: appScheme,
+        source: query,
+        variableValues: variables,
+        contextValue: {
+          prisma: fastify.prisma,
+          loaders: {
+            postsLoader: createPostsLoader(fastify.prisma),
+            profileLoader: createProfileLoader(fastify.prisma),
+            userLoader: createUserLoader(fastify.prisma),
+            userSubscribedToLoader: createUserToSubscribeLoader(fastify.prisma),
+            subscribedToUser: createSubscribedToUserLoader(fastify.prisma),
+            memberTypeLoader: createMemberTypeLoader(fastify.prisma),
+          },
+        },
+      });
     },
   });
 };
